@@ -12,28 +12,26 @@ frames = [] # List to store the images
 #layers = ['background', 'catchments', 'topography', 'roads', 'waterways']
 layers = ['roads']
 
-filename = f"/home/pi/bomradar/final/NSWBackground1.png"
-#file_obj = io.BytesIO()
-#ftp.retrbinary('RETR ' + filename, file_obj.write)
+# Add the locally stored map background
+filename = f"/usr/local/bin/bomradarfiles/{product_id}.Background1.png"
 base_image = Image.open(filename).convert('RGBA')
 
+# connect to the BOM ftp server to grab the layers
 ftp = ftplib.FTP('ftp.bom.gov.au')
 ftp.login()
 ftp.cwd('anon/gen/radar_transparencies/')
 
 for layer in layers:
  filename = f"{product_id}.{layer}.png"
-# print(filename)
  file_obj = io.BytesIO()
  ftp.retrbinary('RETR ' + filename, file_obj.write)
  if layer == 'background':
   base_image = Image.open(file_obj).convert('RGBA')
-#  print(base_image)
  else:
   image = Image.open(file_obj).convert('RGBA')
   base_image.paste(image, (0,0), image)
 
-# Access the FTP server
+# Access the FTP server to get the radar images
 ftp = ftplib.FTP('ftp.bom.gov.au')
 ftp.login()
 ftp.cwd('anon/gen/radar/')
@@ -54,14 +52,11 @@ for file in files:
   ftp.cwd('anon/gen/radar/')
   ftp.retrbinary('RETR ' + file, file_obj.write)
   image = Image.open(file_obj).convert('RGBA')
-#  print(image)
   frame = base_image.copy()
   frame.paste(image, (0,0),image)
   frames.append(frame)
-# except ftplib.all_errors:
-#  pass
 
-#get locations from FTP paste location pic on top of radar images
+# get locations from BOM FTP. Paste location pic on top of radar images (so the radar doesn't cover the location names)
 #  ftp = ftplib.FTP('ftp.bom.gov.au')
 #  ftp.login()
 #  ftp.cwd('anon/gen/radar_transparencies/')
@@ -70,20 +65,19 @@ for file in files:
 #  ftp.retrbinary('RETR ' + filename, file_obj.write)
 #  image = Image.open(file_obj).convert('RGBA')
 
-# use local image for location
-
-  filename = f"/home/pi/bomradar/final/IDR034.locations1.png"
+# use local stored image for locations (must be transparent). This will paste locations on top of radar images
+  filename = f"/usr/local/bin/bomradarfiles/{product_id}.locations1.png"
   image = Image.open(filename).convert('RGBA')
   frame.paste(image, (0,0), image)
   frames.append(frame)
+
+
  except ftplib.all_errors:
   pass
 
-
 ftp.quit()
 
-# Store the result as a GIF file
-#frames[0].save('/home/pi/Elements/Projects/radar_images/radar.gif', format='GIF', save_all=True, append_images=frames[1:]+[frames[-1],frames[-1]], duration=400, loop=0)
+# Store the result as a GIF file in web accessible folder
 frames[0].save('/var/www/html/radar_images/radar.gif', format='GIF', save_all=True, append_images=frames[1:]+[frames[-1],frames[-1]], duration=400, loop=0)
+#used for debugging to see how many pics have been appended.
 print(frames)
-#frames[0].save('/var/www/html/radar_images/radar.gif', format='GIF', save_all=True, append_images=frames[:-1], duration=400, loop=0)
