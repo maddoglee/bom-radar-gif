@@ -8,8 +8,8 @@ from PIL import Image
 product_id = 'IDR034' # The ID for our radar image
 frames = [] # List to store the images
 
-# The layers that we want
-layers = ['background', 'locations', 'catchments', 'topography', 'roads', 'waterways']
+# The layers that we want in the order from bottom to top
+layers = ['background', 'topography', 'roads', 'waterways', 'catchments', 'locations']
 
 # Add the locally stored map background
 #filename = f"/usr/local/bin/bomradarfiles/{product_id}.Background1.png"
