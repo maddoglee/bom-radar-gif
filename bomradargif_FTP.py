@@ -5,7 +5,7 @@ import io
 import ftplib
 from PIL import Image
 
-product_id = 'IDR713' # The ID for our radar image - IDR713 = Sydney
+product_id = 'IDR034' # The ID for our radar image - IDR713 = Sydney
 frames = [] # List to store the images
 
 # The layers that we want in the order from bottom to top
