@@ -13,7 +13,7 @@ frames = [] # List to store the images
 layers = ['roads']
 
 # Add the locally stored map background
-filename = f"/usr/local/bin/bomradarfiles/{product_id}.Background1.png"
+filename = f"bomradarfiles/{product_id}.Background1.png"
 base_image = Image.open(filename).convert('RGBA')
 
 # connect to the BOM ftp server to grab the layers
@@ -66,7 +66,7 @@ for file in files:
 #  image = Image.open(file_obj).convert('RGBA')
 
 # use local stored image for locations (must be transparent). This will paste locations on top of radar images
-  filename = f"/usr/local/bin/bomradarfiles/{product_id}.locations1.png"
+  filename = f"bomradarfiles/{product_id}.locations1.png"
   image = Image.open(filename).convert('RGBA')
   frame.paste(image, (0,0), image)
   frames.append(frame)
