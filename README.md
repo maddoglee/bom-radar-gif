@@ -1,5 +1,6 @@
 # bom-radar-gif
-Python code to pull data from the Australian BOM (Bureau of Meteorology) and create an animated gif on a raspberry pi. This is then used for display on an iPad2 using HA Dashboard. This is the only way I could get the BOM radar working well on the iPad2 along with Home Assistant data.
+Python code to pull data from the Australian BOM (Bureau of Meteorology) and create an animated gif on a raspberry pi zero. This is then used for display on an iPad2 using HA Dashboard. This is the only way I could get the BOM radar working well on the iPad2 along with Home Assistant data.
+I was inspired and used code from this site which was really helpful! https://medium.com/@rolanditaru/create-an-animated-gif-of-the-weather-radar-in-australia-37446a0f4de0
 
 ## **Installation**
 
@@ -20,6 +21,15 @@ bomradargif_STATIC.py
 
 This file will only grab the radar images and append them to your own map background (e.g Google maps) and custom locations.
 
-- edit bomradargif_STATIC.py to set where your files are
-- Copy bomradargif.py and folder bomradarfiles to /usr/local/bin ```sudo cp -r b* /usr/local/bin/```
-- 
+- edit bomradargif_STATIC.py to set where your files are. Take a look at the examples of png files I have made for these. I think it looks better than the BOM backgrounds.
+
+## HA Dashboard (Home Assistant)
+Here is the widget code I used on Home Assistant to display on the iPad. 
+192.168.1.21 is the address of my pi.
+
+```weather_frame:
+    widget_type: iframe
+    refresh: 60
+    frame_style: ""
+    img_list:
+      - http://192.168.1.21/radar_images/radar.gif```
