@@ -80,4 +80,4 @@ ftp.quit()
 # Store the result as a GIF file in web accessible folder
 frames[0].save('/var/www/html/radar_images/radar.gif', format='GIF', save_all=True, append_images=frames[1:]+[frames[-1],frames[-1]], duration=400, loop=0)
 #used for debugging to see how many pics have been appended.
-print(frames)
+#print(frames)
