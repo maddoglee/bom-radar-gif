@@ -68,9 +68,10 @@ for file in files:
 # use local stored image for locations (must be transparent). This will paste locations on top of radar images
 #  filename = f"/usr/local/bin/bomradarfiles/{product_id}.locations1.png"
 #  image = Image.open(filename).convert('RGBA')
-#  frame.paste(image, (0,0), image)
-#  frames.append(frame)
 
+# paste either FTP or local locations
+  frame.paste(image, (0,0), image)
+  frames.append(frame)
  except ftplib.all_errors:
   pass
 
