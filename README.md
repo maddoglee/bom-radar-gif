@@ -32,4 +32,5 @@ Here is the widget code I used on Home Assistant to display on the iPad.
     refresh: 60
     frame_style: ""
     img_list:
-      - http://192.168.1.21/radar_images/radar.gif```
+      - http://192.168.1.21/radar_images/radar.gif
+```
