@@ -1,6 +1,6 @@
 # bom-radar-gif
-Python code to pull data from the Australian BOM (Bureau of Meteorology) and create an animated gif on a raspberry pi zero. This is then used for display on an iPad2 using HA Dashboard. This is the only way I could get the BOM radar working well on the iPad2 along with Home Assistant data.
-I was inspired and used code from this site which was really helpful! https://medium.com/@rolanditaru/create-an-animated-gif-of-the-weather-radar-in-australia-37446a0f4de0
+Python code to pull data from the Australian BOM (Bureau of Meteorology) and create an animated gif on a Raspberry Pi Zero. This is then used for display on an iPad2 using HA Dashboard. This is the only way I could get the BOM radar working well on the iPad2 along with Home Assistant data.
+I was inspired and used code from this really helpful site! https://medium.com/@rolanditaru/create-an-animated-gif-of-the-weather-radar-in-australia-37446a0f4de0
 
 ## **Installation**
 
