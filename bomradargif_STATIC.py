@@ -19,15 +19,21 @@ ftp = ftplib.FTP('ftp.bom.gov.au')
 ftp.login()
 ftp.cwd('anon/gen/radar_transparencies/')
 
+# List files in the directory
+files = ftp.nlst()
+
 for layer in layers:
     filename = f"{product_id}.{layer}.png"
-    file_obj = io.BytesIO()
-    ftp.retrbinary('RETR ' + filename, file_obj.write)
-    if layer == 'background':
-        base_image = Image.open(file_obj).convert('RGBA')
+    if filename in files:
+        file_obj = io.BytesIO()
+        ftp.retrbinary('RETR ' + filename, file_obj.write)
+        if layer == 'background':
+            base_image = Image.open(file_obj).convert('RGBA')
+        else:
+            image = Image.open(file_obj).convert('RGBA')
+            base_image.paste(image, (0, 0), image)
     else:
-        image = Image.open(file_obj).convert('RGBA')
-        base_image.paste(image, (0, 0), image)
+        print(f"File {filename} not found on the server. Skipping...")
 
 # Access the FTP server to get the radar images
 ftp.cwd('anon/gen/radar/')
