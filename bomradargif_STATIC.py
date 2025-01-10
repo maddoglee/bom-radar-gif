@@ -38,7 +38,7 @@ for layer in layers:
 # Access the FTP server to get the radar images
 try:
     print("Changing directory to anon/gen/radar/")
-    ftp.cwd('anon/gen/radar/')
+    ftp.cwd('/anon/gen/radar/')
     print("Successfully changed directory to anon/gen/radar/")
 except ftplib.error_perm as e:
     print(f"Failed to change directory: {e}")
