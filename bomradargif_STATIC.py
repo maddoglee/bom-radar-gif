@@ -36,7 +36,14 @@ for layer in layers:
         print(f"File {filename} not found on the server. Skipping...")
 
 # Access the FTP server to get the radar images
-ftp.cwd('anon/gen/radar/')
+try:
+    print("Changing directory to anon/gen/radar/")
+    ftp.cwd('anon/gen/radar/')
+    print("Successfully changed directory to anon/gen/radar/")
+except ftplib.error_perm as e:
+    print(f"Failed to change directory: {e}")
+    ftp.quit()
+    exit(1)
 
 # List comprehension to filter out the images we need
 files = [file for file in ftp.nlst() if file.startswith(product_id) and file.endswith('.png')][-5:]
