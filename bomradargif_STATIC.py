@@ -19,7 +19,7 @@ base_image = Image.open(filename).convert('RGBA')
 # Connect to the BOM FTP server to grab the layers
 ftp = ftplib.FTP('ftp.bom.gov.au')
 ftp.login()
-ftp.cwd('anon/gen/radar_transparencies/')
+ftp.cwd('/anon/gen/radar_transparencies/')
 
 # List files in the directory
 files = ftp.nlst()
@@ -45,7 +45,7 @@ for layer in layers:
 # Access the FTP server to get the radar images
 try:
     print("Changing directory to anon/gen/radar/")
-    ftp.cwd('anon/gen/radar/')
+    ftp.cwd('/anon/gen/radar/')
     print("Successfully changed directory to anon/gen/radar/")
 except ftplib.error_perm as e:
     print(f"Failed to change directory: {e}")
