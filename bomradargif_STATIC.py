@@ -17,7 +17,7 @@ base_image = Image.open(filename).convert('RGBA')
 # Connect to the BOM FTP server to grab the layers
 ftp = ftplib.FTP('ftp.bom.gov.au')
 ftp.login()
-ftp.cwd('anon/gen/radar_transparencies/')
+ftp.cwd('/anon/gen/radar_transparencies/')
 
 # List files in the directory
 files = ftp.nlst()
