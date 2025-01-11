@@ -1,8 +1,8 @@
 #!/bin/sh
 
-process_name="python3"
+process_name="bomradargif_STATIC.py"
 
-if pgrep -x "$process_name" > /dev/null; then
+if pgrep -f "$process_name" > /dev/null; then
     echo "The process $process_name is running."
 else
     echo "The process $process_name is not running."
