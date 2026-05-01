@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  bom-radar-gif:
+    build: .
+    container_name: bom-radar-gif
+    env_file:
+      - .env
+    volumes:
+      - ./bomradarfiles:/app/bomradarfiles:ro
+      - ./output:/app/output
+      - ./log:/app/log
+    command: sh -c 'while true; do python bomradargif_STATIC.py; sleep 240; done'
+    restart: unless-stopped
