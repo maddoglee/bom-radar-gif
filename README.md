@@ -35,3 +35,50 @@ Here is the widget code I used on Home Assistant to display on the iPad.
     img_list:
       - http://192.168.1.21/radar_images/radar.gif
 ```
+
+## Making it portable
+
+This project now supports configuration through environment variables, which makes it easier to run on Ubuntu or inside Docker.
+
+### Recommended setup
+
+1. Install dependencies:
+   ```bash
+   pip3 install -r requirements.txt
+   ```
+2. Set paths and run the static script:
+   ```bash
+   export RADAR_FILES_DIR=/home/pi/bom-radar-gif/bomradarfiles
+   export RADAR_OUTPUT_GIF=/var/www/html/radar_images/radar.gif
+   python3 bomradargif_STATIC.py
+   ```
+
+### Available environment variables
+
+- `RADAR_FILES_DIR` — folder that contains `IDR034.Background1.png` and `IDR034.locations1.png`
+- `RADAR_OUTPUT_GIF` — target GIF path
+- `RADAR_BACKGROUND_IMAGE` — explicit background image path
+- `RADAR_LOCATIONS_IMAGE` — explicit locations overlay path
+- `RADAR_FTP_HOST` — BOM FTP server hostname
+- `RADAR_FTP_TRANSPARENCIES_DIR` — FTP transparencies directory
+- `RADAR_FTP_RADAR_DIR` — FTP radar images directory
+- `RADAR_MAX_FRAMES` — number of images to include in the GIF
+
+### Docker
+
+A `Dockerfile` is included for Ubuntu/x86_64 or other Linux hosts.
+
+Build the image:
+```bash
+docker build -t bom-radar-gif .
+```
+
+Run it with mounted folders:
+```bash
+docker run --rm \
+  -v $(pwd)/bomradarfiles:/app/bomradarfiles \
+  -v $(pwd)/output:/app/output \
+  bom-radar-gif
+```
+
+Then serve `/app/output/radar.gif` from your web server or mount it to your host.

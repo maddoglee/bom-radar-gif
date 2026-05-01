@@ -1,32 +1,23 @@
 #!/bin/sh
 
-# Define the process name to check
-process_name="bomradargif_STATIC.py"
-# Define the file to check
-file_path="/var/www/html/radar_images/radar.gif"
-# Define the log file
-log_file="/var/log/radar_process.log"
+PROCESS_NAME="${RADAR_PROCESS_NAME:-bomradargif_STATIC.py}"
+FILE_PATH="${RADAR_OUTPUT_GIF:-/var/www/html/radar_images/radar.gif}"
+PYTHON="${RADAR_PYTHON:-/usr/bin/python3}"
+SCRIPT="${RADAR_SCRIPT:-/home/pi/bom-radar-gif/bomradargif_STATIC.py}"
+LOG_FILE="${RADAR_LOG_FILE:-/var/log/radar_process.log}"
+CHECK_AGE_MINUTES="${RADAR_CHECK_AGE_MINUTES:-10}"
 
-# Check if the process is running
-if pgrep -f "$process_name" > /dev/null; then
-    echo "The process $process_name is running."
-    
-    # Check if the file is older than 10 minutes
-    if [ $(find "$file_path" -mmin +10) ]; then
-        echo "The file $file_path is older than 10 minutes."
-        
-        # Log the event
-        echo "$(date): The file $file_path is older than 10 minutes. Restarting the process." >> "$log_file"
-        
-        # Kill the process
-        pkill -f "$process_name"
-        
-        # Restart the process
-        /usr/bin/python3 /home/pi/bom-radar-gif/bomradargif_STATIC.py
+if pgrep -f "$PROCESS_NAME" > /dev/null; then
+    echo "The process $PROCESS_NAME is running."
+
+    if [ "$(find "$FILE_PATH" -mmin +$CHECK_AGE_MINUTES)" ]; then
+        echo "The file $FILE_PATH is older than $CHECK_AGE_MINUTES minutes."
+        echo "$(date): The file $FILE_PATH is older than $CHECK_AGE_MINUTES minutes. Restarting the process." >> "$LOG_FILE"
+        pkill -f "$PROCESS_NAME"
+        "$PYTHON" "$SCRIPT"
     else
-        echo "The file $file_path is not older than 10 minutes."
+        echo "The file $FILE_PATH is not older than $CHECK_AGE_MINUTES minutes."
     fi
 else
-    # Start the process if it's not running
-    /usr/bin/python3 /home/pi/bom-radar-gif/bomradargif_STATIC.py
+    "$PYTHON" "$SCRIPT"
 fi
