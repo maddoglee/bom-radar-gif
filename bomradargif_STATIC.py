@@ -2,7 +2,29 @@
 
 import io
 import ftplib
+import textwrap
 from PIL import Image, ImageDraw, ImageFont
+
+
+def draw_centered_multiline_text(draw, text, font, box, fill=(255, 255, 255, 255), line_spacing=6):
+    lines = []
+    for paragraph in text.split("\n"):
+        wrapped = textwrap.wrap(paragraph, width=28)
+        if not wrapped:
+            wrapped = [""]
+        lines.extend(wrapped)
+
+    line_sizes = [draw.textbbox((0, 0), line, font=font) for line in lines]
+    line_heights = [bbox[3] - bbox[1] for bbox in line_sizes]
+    total_height = sum(line_heights) + line_spacing * (len(lines) - 1)
+
+    y = box[1] + ((box[3] - box[1]) - total_height) // 2
+    for line, bbox, height in zip(lines, line_sizes, line_heights):
+        line_width = bbox[2] - bbox[0]
+        x = box[0] + ((box[2] - box[0]) - line_width) // 2
+        draw.text((x, y), line, fill=fill, font=font)
+        y += height + line_spacing
+
 
 # Define the product ID for the radar image based on this URL http://www.bom.gov.au/products/IDR034.loop.shtml
 product_id = 'IDR034'
@@ -26,12 +48,7 @@ except FileNotFoundError as e:
     except OSError:
         font = ImageFont.load_default()
     text = f"Error: Background image not found.\n{e}"
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
-    x = (500 - text_width) // 2
-    y = (300 - text_height) // 2
-    draw.text((x, y), text, fill=(255, 255, 255, 255), font=font)
+    draw_centered_multiline_text(draw, text, font, (0, 0, 500, 300))
     
     # Convert to RGB for GIF compatibility
     error_image = error_image.convert('RGB')
@@ -92,12 +109,7 @@ if not files:
     except OSError:
         font = ImageFont.load_default()
     text = "No radar images found.\nPlease check the BOM website for maintenance."
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
-    x = (500 - text_width) // 2
-    y = (300 - text_height) // 2
-    draw.text((x, y), text, fill=(255, 255, 255, 255), font=font)
+    draw_centered_multiline_text(draw, text, font, (0, 0, 500, 300))
     
     # Convert to RGB for GIF compatibility
     error_image = error_image.convert('RGB')
@@ -147,12 +159,7 @@ if not frames:
     except OSError:
         font = ImageFont.load_default()
     text = "No radar images found.\nPlease check the BOM website for maintenance."
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
-    x = (500 - text_width) // 2
-    y = (300 - text_height) // 2
-    draw.text((x, y), text, fill=(255, 255, 255, 255), font=font)
+    draw_centered_multiline_text(draw, text, font, (0, 0, 500, 300))
     
     # Convert to RGB for GIF compatibility
     error_image = error_image.convert('RGB')
