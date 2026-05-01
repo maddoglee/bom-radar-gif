@@ -2,83 +2,158 @@
 Python code to pull data from the Australian BOM (Bureau of Meteorology) and create an animated gif on a Raspberry Pi Zero. This is then used for display on an iPad2 using HA Dashboard. This is the only way I could get the BOM radar working well on the iPad2 along with Home Assistant data.
 I was inspired and used code from this really helpful site! https://medium.com/@rolanditaru/create-an-animated-gif-of-the-weather-radar-in-australia-37446a0f4de0
 
-## **Installation**
+## Installation & Usage
 
-bomradargif_FTP.py
+This project supports multiple deployment methods depending on your platform and preference.
 
-This file will grab the images from the BOM. Start off with this one to get it working. 
-- Make sure python3 is working on your pi. You also have to install PIL or Pillow. Try this ```pip3 install Pillow```
-- clone the git repository ```git clone https://github.com/maddoglee/bom-radar-gif```
-- edit bomradargif.py for the desired location (in my case it was IDR034, IDR713 is Sydney)
-use the BOM website to find the IDR number for the radar you're interested in. Mine is http://www.bom.gov.au/products/IDR034.loop.shtml#skip
-- Choose the layers you want to add (eg. background, roads, locations, waterways). The order of the layers is from bottom to top. Take a look at the FTP site to see what options you have for your radar location based on the png files available.
-- ```'/var/www/html/radar_images/radar.gif'``` is where the gif goes. Change to wherever you want the gif to go.
-- Check the libraries.
-- run it with ```python3 bomradargif_FTP.py```
-- add it to your crontab. This example makes a gif every 4 mins and outputs errors to a logfile (its in the tmp folder so it gets deleted on every pi reboot) ```*/4 * * * * /usr/bin/python3 /usr/local/bin/bomradar_FTP.py >> /tmp/out.txt 2>&1```
+### 1. Raspberry Pi (Python)
 
-bomradargif_STATIC.py
+For Raspberry Pi users who prefer running Python directly:
 
-This file will only grab the radar images and append them to your own map background (e.g Google maps) and custom locations.
-
-- edit bomradargif_STATIC.py to set where your files are. Take a look at the examples of png files I have made for these. I think it looks better than the BOM backgrounds.
-- add it to your crontab. This example makes a gif every 4 mins and outputs errors to a logfile (its in the tmp folder so it gets deleted on every pi reboot) ```*/4 * * * * /home/pi/bom-radar-gif/bomradargif.sh >> /tmp/out.txt 2>&1```
-
-## HA Dashboard (Home Assistant)
-Here is the widget code I used on Home Assistant to display on the iPad. 
-192.168.1.21 is the address of my pi.
-
-```weather_frame:
-    widget_type: iframe
-    refresh: 60
-    frame_style: ""
-    img_list:
-      - http://192.168.1.21/radar_images/radar.gif
+```bash
+git clone https://github.com/maddoglee/bom-radar-gif.git
+cd bom-radar-gif
+pip3 install -r requirements.txt
 ```
 
-## Making it portable
+Edit environment variables or use defaults:
+```bash
+export RADAR_FILES_DIR=./bomradarfiles
+export RADAR_OUTPUT_GIF=/var/www/html/radar_images/radar.gif
+python3 bomradargif_STATIC.py
+```
 
-This project now supports configuration through environment variables, which makes it easier to run on Ubuntu or inside Docker.
+Add to crontab for automated scheduling (every 4 minutes):
+```bash
+*/4 * * * * cd /home/pi/bom-radar-gif && /usr/bin/python3 bomradargif_STATIC.py >> /tmp/out.txt 2>&1
+```
 
-### Recommended setup
+Or use the wrapper script with watchdog logic:
+```bash
+*/4 * * * * /home/pi/bom-radar-gif/bomradargif.sh >> /tmp/out.txt 2>&1
+```
 
-1. Install dependencies:
-   ```bash
-   pip3 install -r requirements.txt
-   ```
-2. Set paths and run the static script:
-   ```bash
-   export RADAR_FILES_DIR=/home/pi/bom-radar-gif/bomradarfiles
-   export RADAR_OUTPUT_GIF=/var/www/html/radar_images/radar.gif
-   python3 bomradargif_STATIC.py
-   ```
+### 2. Ubuntu/Linux (Python)
 
-### Available environment variables
+For running directly on Ubuntu or other Linux systems:
 
-- `RADAR_FILES_DIR` — folder that contains `IDR034.Background1.png` and `IDR034.locations1.png`
-- `RADAR_OUTPUT_GIF` — target GIF path
-- `RADAR_BACKGROUND_IMAGE` — explicit background image path
-- `RADAR_LOCATIONS_IMAGE` — explicit locations overlay path
-- `RADAR_FTP_HOST` — BOM FTP server hostname
-- `RADAR_FTP_TRANSPARENCIES_DIR` — FTP transparencies directory
-- `RADAR_FTP_RADAR_DIR` — FTP radar images directory
-- `RADAR_MAX_FRAMES` — number of images to include in the GIF
+```bash
+git clone https://github.com/maddoglee/bom-radar-gif.git
+cd bom-radar-gif
+pip3 install -r requirements.txt
+```
 
-### Docker
+Set your paths:
+```bash
+export RADAR_FILES_DIR=/path/to/bomradarfiles
+export RADAR_OUTPUT_GIF=/var/www/html/radar_images/radar.gif
+python3 bomradargif_STATIC.py
+```
 
-A `Dockerfile` is included for Ubuntu/x86_64 or other Linux hosts.
+Create a systemd service or use cron as above.
 
-Build the image:
+### 3. Docker Compose (Recommended for Ubuntu/i5 Server)
+
+The easiest way to run on your Ubuntu i5-8600 server:
+
+```bash
+git clone https://github.com/maddoglee/bom-radar-gif.git
+cd bom-radar-gif
+cp .env.example .env
+# Edit .env if needed (optional, defaults are usually fine)
+docker-compose up -d
+```
+
+The container will:
+- Run in the background
+- Execute the radar GIF generation every 4 minutes
+- Mount `./bomradarfiles` for overlay images (read-only)
+- Mount `./output` for the generated `radar.gif`
+- Restart automatically unless stopped
+
+View logs:
+```bash
+docker-compose logs -f bom-radar-gif
+```
+
+Stop:
+```bash
+docker-compose down
+```
+
+### 4. Docker (Manual)
+
+If you prefer manual Docker without Compose:
+
 ```bash
 docker build -t bom-radar-gif .
-```
-
-Run it with mounted folders:
-```bash
-docker run --rm \
-  -v $(pwd)/bomradarfiles:/app/bomradarfiles \
+docker run -d \
+  --name bom-radar-gif \
+  -v $(pwd)/bomradarfiles:/app/bomradarfiles:ro \
   -v $(pwd)/output:/app/output \
+  --env-file .env.example \
+  --restart unless-stopped \
   bom-radar-gif
 ```
 
-Then serve `/app/output/radar.gif` from your web server or mount it to your host.
+## Configuration
+
+All paths and FTP settings are configurable via environment variables. See [.env.example](.env.example) for available options:
+
+- `RADAR_FILES_DIR` — folder containing background and overlay images
+- `RADAR_OUTPUT_GIF` — where to save the generated GIF
+- `RADAR_BACKGROUND_IMAGE` — custom background PNG path
+- `RADAR_LOCATIONS_IMAGE` — custom locations overlay PNG path
+- `RADAR_FTP_HOST` — BOM FTP server (default: `ftp.bom.gov.au`)
+- `RADAR_FTP_TRANSPARENCIES_DIR` — FTP path for layer files
+- `RADAR_FTP_RADAR_DIR` — FTP path for radar images
+- `RADAR_MAX_FRAMES` — number of images in the GIF (default: 5)
+
+## Creating Custom Background & Overlay Images
+
+You can create your own custom background and locations overlay images:
+
+1. **Background** (`IDR034.Background1.png`):
+   - Use Google Maps or your preferred cartography tool
+   - Export as PNG with transparency (RGBA)
+   - Should be 500x300 pixels for best results
+
+2. **Locations** (`IDR034.locations1.png`):
+   - Add points of interest or labels
+   - Must have a transparent background (RGBA)
+   - Same dimensions: 500x300 pixels
+
+Place these files in the `bomradarfiles/` folder.
+
+## Choosing Your Radar Location
+
+The project defaults to `IDR034` (Brisbane). To use a different location:
+
+1. Find your radar on the [BOM website](http://www.bom.gov.au/products/)
+2. Note the IDR number (e.g., `IDR713` for Sydney)
+3. Update your background and locations image filenames accordingly
+4. Set `RADAR_BACKGROUND_IMAGE` and `RADAR_LOCATIONS_IMAGE` environment variables if using non-standard paths
+
+## Error Display
+
+If the script encounters issues (no radar images, missing files, FTP errors), it will create an error message GIF displayed on your dashboard. This makes it easy to spot problems without checking logs.
+
+## Home Assistant Integration
+
+Display the radar GIF on your Home Assistant dashboard:
+
+```yaml
+weather_frame:
+  widget_type: iframe
+  refresh: 60
+  frame_style: ""
+  img_list:
+    - http://192.168.1.21/radar_images/radar.gif
+```
+
+Replace `192.168.1.21` with your Pi or server's IP address, and adjust the path to match your `RADAR_OUTPUT_GIF` setting.
+
+## Release Notes
+
+- **v1.0-rpi**: Stable Raspberry Pi + Python version with error handling (tag: `v1.0-rpi`)
+- **main** (latest): Full portability support, Docker/Compose, environment variables
