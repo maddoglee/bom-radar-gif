@@ -21,8 +21,17 @@ except FileNotFoundError as e:
     # Create an error image
     error_image = Image.new('RGBA', (500, 300), (255, 0, 0, 255))
     draw = ImageDraw.Draw(error_image)
-    font = ImageFont.load_default()
-    draw.text((10, 10), f"Error: Background image not found", fill=(255, 255, 255, 255), font=font)
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+    except OSError:
+        font = ImageFont.load_default()
+    text = f"Error: Background image not found.\n{e}"
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x = (500 - text_width) // 2
+    y = (300 - text_height) // 2
+    draw.text((x, y), text, fill=(255, 255, 255, 255), font=font)
     
     # Convert to RGB for GIF compatibility
     error_image = error_image.convert('RGB')
@@ -78,8 +87,17 @@ if not files:
     # Create an error image
     error_image = Image.new('RGBA', (500, 300), (255, 0, 0, 255))
     draw = ImageDraw.Draw(error_image)
-    font = ImageFont.load_default()
-    draw.text((10, 10), "Error: No radar images found.", fill=(255, 255, 255, 255), font=font)
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+    except OSError:
+        font = ImageFont.load_default()
+    text = "No radar images found.\nPlease check the BOM website for maintenance."
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x = (500 - text_width) // 2
+    y = (300 - text_height) // 2
+    draw.text((x, y), text, fill=(255, 255, 255, 255), font=font)
     
     # Convert to RGB for GIF compatibility
     error_image = error_image.convert('RGB')
@@ -111,11 +129,38 @@ for file in files:
         image = Image.open(filename).convert('RGBA')
         frame.paste(image, (0, 0), image)
         frames.append(frame)
-    except ftplib.all_errors:
+    except Exception as e:
+        print(f"Error processing {file}: {e}")
         pass
 
 # Close the FTP connection
 ftp.quit()
+
+if not frames:
+    print("No radar images found.")
+    
+    # Create an error image
+    error_image = Image.new('RGBA', (500, 300), (255, 0, 0, 255))
+    draw = ImageDraw.Draw(error_image)
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+    except OSError:
+        font = ImageFont.load_default()
+    text = "No radar images found.\nPlease check the BOM website for maintenance."
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x = (500 - text_width) // 2
+    y = (300 - text_height) // 2
+    draw.text((x, y), text, fill=(255, 255, 255, 255), font=font)
+    
+    # Convert to RGB for GIF compatibility
+    error_image = error_image.convert('RGB')
+    
+    # Save the error image as a GIF
+    error_image.save('/var/www/html/radar_images/radar.gif', format='GIF')
+    
+    exit(1)
 
 if frames:
     # Store the result as a GIF file in a web-accessible folder
