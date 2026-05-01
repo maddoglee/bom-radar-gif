@@ -2,7 +2,7 @@
 
 import io
 import ftplib
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 # Define the product ID for the radar image based on this URL http://www.bom.gov.au/products/IDR034.loop.shtml
 product_id = 'IDR034'
@@ -14,7 +14,22 @@ layers = ['roads']
 
 # Add the locally stored map background (I made my own background image using Google maps. you can modify the code to use the BOM background image if you want)
 filename = f"/home/pi/bom-radar-gif/bomradarfiles/{product_id}.Background1.png"
-base_image = Image.open(filename).convert('RGBA')
+try:
+    base_image = Image.open(filename).convert('RGBA')
+except FileNotFoundError as e:
+    print(f"Background image not found: {e}")
+    # Create an error image
+    error_image = Image.new('RGBA', (500, 300), (255, 0, 0, 255))
+    draw = ImageDraw.Draw(error_image)
+    font = ImageFont.load_default()
+    draw.text((10, 10), f"Error: Background image not found", fill=(255, 255, 255, 255), font=font)
+    
+    # Convert to RGB for GIF compatibility
+    error_image = error_image.convert('RGB')
+    
+    # Save the error image as a GIF
+    error_image.save('/var/www/html/radar_images/radar.gif', format='GIF')
+    exit(1)
 
 # Connect to the BOM FTP server to grab the layers
 ftp = ftplib.FTP('ftp.bom.gov.au')
@@ -57,6 +72,24 @@ except ftplib.error_perm as e:
 # Take the last 5 images, which are the most recent ones
 files = [file for file in ftp.nlst() if file.startswith(product_id) and file.endswith('.png')][-5:]
 
+if not files:
+    print("No radar images found.")
+    
+    # Create an error image
+    error_image = Image.new('RGBA', (500, 300), (255, 0, 0, 255))
+    draw = ImageDraw.Draw(error_image)
+    font = ImageFont.load_default()
+    draw.text((10, 10), "Error: No radar images found.", fill=(255, 255, 255, 255), font=font)
+    
+    # Convert to RGB for GIF compatibility
+    error_image = error_image.convert('RGB')
+    
+    # Save the error image as a GIF
+    error_image.save('/var/www/html/radar_images/radar.gif', format='GIF')
+    
+    ftp.quit()
+    exit(1)
+
 # Loop over the files and append the image data into our image list
 for file in files:
     file_obj = io.BytesIO()
@@ -84,8 +117,9 @@ for file in files:
 # Close the FTP connection
 ftp.quit()
 
-# Store the result as a GIF file in a web-accessible folder
-frames[0].save('/var/www/html/radar_images/radar.gif', format='GIF', save_all=True, append_images=frames[1:] + [frames[-1], frames[-1]], duration=400, loop=0)
+if frames:
+    # Store the result as a GIF file in a web-accessible folder
+    frames[0].save('/var/www/html/radar_images/radar.gif', format='GIF', save_all=True, append_images=frames[1:] + [frames[-1], frames[-1]], duration=400, loop=0)
 
 # Used for debugging to see how many pics have been appended.
 #print(frames)
